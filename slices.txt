@@ -1,0 +1,14 @@
+Login - redux slices:
+	Videos,
+	Subscriptions,
+	Trending,
+	Library,
+	History,
+	Your Videos,
+	Liked Videos
+
+No User - redux slices:
+	Videos,
+	Trending,
+
+Google Login
