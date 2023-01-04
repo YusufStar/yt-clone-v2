@@ -41,6 +41,6 @@ yarn-error.log*
 /.changelog
 .npm/
 dist
-sc-01.png
-sc-02.png
-slices.txt
+.sc-01.png
+.sc-02.png
+.slices.txt
