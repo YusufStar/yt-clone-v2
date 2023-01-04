@@ -1,13 +1,31 @@
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { login, logout } from "../features/AuthSlice";
+import { auth } from "../FirebaseConfig";
+import Button from "./Button";
+import NotificationModalComp from "./NotificationModalComp";
 
-const Navbar = () => {
+const Navbar = ({ defaultSearchText = "" }) => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(defaultSearchText);
+  const { user } = useSelector((state) => state.Auth);
+  const dispatch = useDispatch();
+  const [NotificationModal, SetNotificationModal] = useState(false)
 
   const handleSearch = (e) => {
     e.preventDefault();
-    console.log(searchTerm);
+    navigate("Search/" + searchTerm);
+  };
+
+  const GoogleSignIn = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((res) => {
+        dispatch(login(res.user));
+      })
+      .catch((err) => console.log(err));
   };
 
   return (
@@ -111,7 +129,7 @@ const Navbar = () => {
           className="w-full leading-6 outline-none"
           placeholder="Ara"
         />
-        <button title="Ara" className="search-icn">
+        <button type="submit" title="Ara" className="search-icn">
           <svg
             viewBox="0 0 24 24"
             preserveAspectRatio="xMidYMid meet"
@@ -133,31 +151,101 @@ const Navbar = () => {
           </svg>
         </button>
 
-        <button className="w-[40px] ml-2 h-[40px] bg-[#181818] px-4 flex items-center justify-center rounded-full hover:bg-[#303030]">
-          <svg
-            viewBox="0 0 24 24"
-            preserveAspectRatio="xMidYMid meet"
-            focusable="false"
-            className=""
-            style={{
-              pointerEvents: "none",
-              width: "24px",
-              height: "24px",
-              flexShrink: 0
-            }}
-          >
-            <g className="">
-              <path
-                fill="white"
-                d="M12 3C10.34 3 9 4.37 9 6.07V11.93C9 13.63 10.34 15 12 15C13.66 15 15 13.63 15 11.93V6.07C15 4.37 13.66 3 12 3ZM18.5 12H17.5C17.5 15.03 15.03 17.5 12 17.5C8.97 17.5 6.5 15.03 6.5 12H5.5C5.5 15.24 7.89 17.93 11 18.41V21H13V18.41C16.11 17.93 18.5 15.24 18.5 12Z"
-                className="flex-shrink-0"
-              ></path>
-            </g>
-          </svg>
-        </button>
+        <button className="w-[40px] ml-2 h-[40px] bg-[#181818] px-4 flex items-center justify-center rounded-full hover:bg-[#303030]"></button>
       </form>
 
-      <div className="min-w-[225px] flex flex-1 items-center justify-end"></div>
+      <div className="min-w-[225px] flex flex-1 items-center justify-end">
+        {user ? (
+          <div className="flex-1 w-full h-full flex items-center justify-end">
+            <Button
+              Icon={() => {
+                return (
+                  <svg
+                    viewBox="0 0 24 24"
+                    preserveAspectRatio="xMidYMid meet"
+                    focusable="false"
+                    className=""
+                    style={{
+                      pointerEvents: "none",
+                      width: "24px",
+                      height: "24px",
+                    }}
+                  >
+                    <g className="">
+                      <path
+                        fill="white"
+                        d="M14,13h-3v3H9v-3H6v-2h3V8h2v3h3V13z M17,6H3v12h14v-6.39l4,1.83V8.56l-4,1.83V6 M18,5v3.83L22,7v8l-4-1.83V19H2V5H18L18,5 z"
+                        className=""
+                      ></path>
+                    </g>
+                  </svg>
+                );
+              }}
+            />
+            {/* Notification Button */}
+            <div className="relative">
+              {NotificationModal && <NotificationModalComp/>}
+              <Button
+              onClickEvent={() => SetNotificationModal(!NotificationModal)}
+                Icon={() => {
+                  return (
+                    <svg
+                      viewBox="0 0 24 24"
+                      preserveAspectRatio="xMidYMid meet"
+                      focusable="false"
+                      style={{
+                        pointerEvents: "none",
+                        width: "24px",
+                        height: "24px",
+                      }}
+                    >
+                      <g>
+                        <path
+                          fill="white"
+                          d="M10,20h4c0,1.1-0.9,2-2,2S10,21.1,10,20z M20,17.35V19H4v-1.65l2-1.88v-5.15c0-2.92,1.56-5.22,4-5.98V3.96 c0-1.42,1.49-2.5,2.99-1.76C13.64,2.52,14,3.23,14,3.96l0,0.39c2.44,0.75,4,3.06,4,5.98v5.15L20,17.35z M19,17.77l-2-1.88v-5.47 c0-2.47-1.19-4.36-3.13-5.1c-1.26-0.53-2.64-0.5-3.84,0.03C8.15,6.11,7,7.99,7,10.42v5.47l-2,1.88V18h14V17.77z"
+                        ></path>
+                      </g>
+                    </svg>
+                  );
+                }}
+              />
+            </div>
+            <div className="py-[1px] px-[6px]">
+              <img
+                src={user?.photoURL}
+                alt={user?.displayName}
+                className="w-[36px] h-[36px] rounded-full cursor-pointer"
+                onClick={() => dispatch(logout())}
+              />
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => GoogleSignIn()}
+            className="flex gap-1 bg-transparent border-[1px] border-[#303030] hover:bg-[#3ea6ff]/40 hover:border-transparent transition-all duration-150 py-2 px-4 rounded-full"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              preserveAspectRatio="xMidYMid meet"
+              focusable="false"
+              className="style-scope yt-icon"
+              style={{
+                width: "24px",
+                height: "24px",
+              }}
+            >
+              <g className="style-scope yt-icon">
+                <path
+                  fill="#3ea6ff"
+                  d="M12,2C6.48,2,2,6.48,2,12c0,5.52,4.48,10,10,10s10-4.48,10-10C22,6.48,17.52,2,12,2z M12,3c4.96,0,9,4.04,9,9 c0,1.42-0.34,2.76-0.93,3.96c-1.53-1.72-3.98-2.89-7.38-3.03C14.57,12.6,16,10.97,16,9c0-2.21-1.79-4-4-4C9.79,5,8,6.79,8,9 c0,1.97,1.43,3.6,3.31,3.93c-3.4,0.14-5.85,1.31-7.38,3.03C3.34,14.76,3,13.42,3,12C3,7.04,7.04,3,12,3z M9,9c0-1.65,1.35-3,3-3 s3,1.35,3,3c0,1.65-1.35,3-3,3S9,10.65,9,9z M12,21c-3.16,0-5.94-1.64-7.55-4.12C6.01,14.93,8.61,13.9,12,13.9 c3.39,0,5.99,1.03,7.55,2.98C17.94,19.36,15.16,21,12,21z"
+                  className="style-scope yt-icon"
+                ></path>
+              </g>
+            </svg>
+            <p className="text-[#3ea6ff]">Sign In</p>
+          </button>
+        )}
+      </div>
     </div>
   );
 };
