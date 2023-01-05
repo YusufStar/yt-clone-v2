@@ -11,8 +11,23 @@ const router = createBrowserRouter([
   },
   {
     path: "/Search/:id",
-    index: true,
     element: <Search />,
+  },
+  {
+    path: "/Subscriptions",
+    element: <Home />,
+  },
+  {
+    path: "/History",
+    element: <Home />,
+  },
+  {
+    path: "/Playlist",
+    element: <Home />,
+  },
+  {
+    path: "/Likes",
+    element: <Home />,
   },
 ]);
 

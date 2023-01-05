@@ -13,11 +13,11 @@ input {
 
 .search-icn {
     height: 40px;
-    width: 64px;
+    width: 70px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 0 40px 40px 0;
     border: 1px solid hsl(0, 0%, 18.82%);
-    background-color: hsl(0, 0%, 18.82%);
+    background-color: #222222;
 }
