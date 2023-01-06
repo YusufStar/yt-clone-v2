@@ -249,7 +249,7 @@ const navList = [
 const SideBar = () => {
   const currentPage = useLocation();
   return (
-    <div className="w-[240px] pr-5 pl-3 flex flex-col pt-3 gap-2">
+    <div className="w-[240px] pr-5 pl-3 flex flex-col pt-3 gap-2 h-full bg-[#0f0f0f]">
       {navList.map((item, idx) => {
         return (
           <Item
@@ -279,7 +279,7 @@ const Item = ({ Icon, title, currentPageFunc, path }) => {
       onClick={() => navigate(path)}
     >
       <Icon />
-      <h1 className={`text-white ${currentPageFunc() ? "font-semibold" : ""}`}>
+      <h1 className={`text-white text-[14px] ${currentPageFunc() ? "font-semibold" : ""}`}>
         {title}
       </h1>
     </button>

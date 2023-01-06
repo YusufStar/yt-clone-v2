@@ -3,7 +3,7 @@ import Button from "./Button";
 
 const NotificationModalComp = () => {
   return (
-    <div className="bg-[#282828] absolute max-w-[480px] max-h-[634px] w-[480px] h-[642px] overflow-y-auto right-4 top-10 rounded-xl flex flex-wrap">
+    <div className="bg-[#282828] absolute max-w-[480px] max-h-[634px] w-[480px] h-[642px] overflow-y-auto right-4 top-10 rounded-xl flex flex-wrap z-50">
       {/* Header */}
       <div className="mx-4 h-[50px] flex flex-1 items-center justify-between">
         <h1 className="text-white">Bildirimler</h1>

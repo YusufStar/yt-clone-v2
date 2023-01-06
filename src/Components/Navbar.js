@@ -16,7 +16,11 @@ const Navbar = ({ defaultSearchText = "" }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate("Search/" + searchTerm);
+    if (searchTerm !== "") {
+      navigate("Search/" + searchTerm);
+    } else if (searchTerm === "") {
+      navigate("/");
+    }
   };
 
   const GoogleSignIn = () => {
