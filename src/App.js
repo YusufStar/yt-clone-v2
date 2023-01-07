@@ -1,7 +1,7 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom/dist";
 import Home from "./Screens/Home";
-import Search from "./Screens/Search";
+import Watch from "./Screens/Watch";
 
 const router = createBrowserRouter([
   {
@@ -11,10 +11,6 @@ const router = createBrowserRouter([
   },
   {
     path: "/Search/:id",
-    element: <Search />,
-  },
-  {
-    path: "/Subscriptions",
     element: <Home />,
   },
   {
@@ -28,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/Likes",
     element: <Home />,
+  },
+  {
+    path: "/Watch/:id",
+    element: <Watch />,
   },
 ]);
 

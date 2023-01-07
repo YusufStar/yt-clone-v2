@@ -64,55 +64,6 @@ const navList = [
           <g>
             <path
               fill="white"
-              d="M20,7H4V6h16V7z M22,9v12H2V9H22z M15,15l-5-3v6L15,15z M17,3H7v1h10V3z"
-            ></path>
-          </g>
-        </svg>
-      );
-    },
-    inactive: () => {
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          preserveAspectRatio="xMidYMid meet"
-          focusable="false"
-          style={{
-            pointerEvents: "none",
-            width: "24px",
-            height: "24px",
-          }}
-        >
-          <g>
-            <path
-              fill="white"
-              d="M10,18v-6l5,3L10,18z M17,3H7v1h10V3z M20,6H4v1h16V6z M22,9H2v12h20V9z M3,10h18v10H3V10z"
-            ></path>
-          </g>
-        </svg>
-      );
-    },
-    title: "Abonelikler",
-    currentPage: (pathname) => {
-      return pathname === "/Subscriptions";
-    },
-    path: "/Subscriptions",
-  },
-  {
-    active: () => {
-      return (
-        <svg
-          viewBox="0 0 24 24"
-          preserveAspectRatio="xMidYMid meet"
-          focusable="false"
-          style={{
-            pointerEvents: "none",
-            width: "24px",
-            height: "24px",
-          }}
-        >
-          <g>
-            <path
-              fill="white"
               d="M14.97,16.95L10,13.87V7h2v5.76l4.03,2.49L14.97,16.95z M12,2C8.73,2,5.8,3.44,4,5.83V3.02H2V9h6V7H5.62 C7.08,5.09,9.36,4,12,4c4.41,0,8,3.59,8,8s-3.59,8-8,8s-8-3.59-8-8H2c0,5.51,4.49,10,10,10s10-4.49,10-10S17.51,2,12,2z"
             ></path>
           </g>
@@ -249,7 +200,7 @@ const navList = [
 const SideBar = () => {
   const currentPage = useLocation();
   return (
-    <div className="w-[240px] pr-5 pl-3 flex flex-col pt-3 gap-2 h-full bg-[#0f0f0f]">
+    <div className="w-[240px] pr-5 pl-3 fixed flex flex-col gap-2">
       {navList.map((item, idx) => {
         return (
           <Item

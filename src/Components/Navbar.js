@@ -33,7 +33,7 @@ const Navbar = ({ defaultSearchText = "" }) => {
   };
 
   return (
-    <div className="px-4 flex items-center justify-between h-14">
+    <div className="px-4 fixed w-full bg-[#0f0f0f] z-10 flex items-center justify-between h-14">
       <div className="flex items-center flex-1">
         {/* Menu Btn */}
         <button className="p-2 rounded-full hover:bg-[#272727] mr-4">

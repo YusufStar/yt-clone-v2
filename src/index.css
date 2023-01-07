@@ -21,3 +21,7 @@ input {
     border: 1px solid hsl(0, 0%, 18.82%);
     background-color: #222222;
 }
+
+.thumb {
+    width: calc(100%/4px - 16px - 0.01px);
+}

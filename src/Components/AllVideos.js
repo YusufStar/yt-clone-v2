@@ -1,28 +1,15 @@
-import React from 'react'
-import VideoBox from './VideoBox'
+import React from "react";
+import VideoBox from "./VideoBox";
+import { videos } from "../Data";
 
 const AllVideos = () => {
   return (
-    <div className='h-full w-full pt-8 flex flex-wrap px-12'>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
-        <VideoBox/>
+    <div className="h-full w-full pl-[240px] pt-8 flex flex-wrap px-12">
+      {videos?.map((video) => {
+        return <VideoBox video={video}/>;
+      })}
     </div>
-  )
-}
+  );
+};
 
-export default AllVideos
+export default AllVideos;
