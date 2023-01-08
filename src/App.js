@@ -2,6 +2,7 @@ import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom/dist";
 import Home from "./Screens/Home";
 import Watch from "./Screens/Watch";
+import User from "./Screens/User";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
     path: "/Watch/:id",
     element: <Watch />,
   },
+  {
+    path: "/User/:id",
+    element: <User/>
+  }
 ]);
 
 function App() {
