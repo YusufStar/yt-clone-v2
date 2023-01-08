@@ -31,6 +31,9 @@ const Watch = () => {
   const [mute, setMute] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [like, setLike] = useState(video.like.includes(user?.uid))
+  const [dislike, setDislike] = useState(video.dislike.includes(user?.uid))
+  const [comment, setComment] = useState("")
 
   const playVideo = () => {
     isPlaying ? videoRef.current.pause() : videoRef.current.play();
@@ -107,7 +110,7 @@ const Watch = () => {
 
   const TextFormatter = (tweet) => {
     tweet = tweet
-      .replace(/@([\w]+)/g, "<span id='hash'>@$1</span>")
+      .replace(/@([\w]+)/g, "<span id='hat'>@$1</span>")
       .replace(/#([\wşçöğüıİ]+)/gi, "<span id='hash'>#$1</span>")
       .replace(/(https?:\/\/[\w\.\/]+)/, "<span>$1</span>")
       .replace(/\n/g, "<br />");
@@ -143,13 +146,35 @@ const Watch = () => {
   };
 
   useEffect(() => {
-    const el = document.getElementById("hash")
-    if(el) {
-    el.addEventListener("click", () => {
-      navigate(`/User/${Channels.find((channel) => channel.name === el?.innerHTML.replace("#", "")).name}`)
+    const element = document.querySelectorAll("#hat");
+    element.forEach((el) => {
+      if (el) {
+        el.addEventListener("click", () => {
+          navigate(
+            `/User/${
+              Channels.find(
+                (channel) => channel.name === el?.innerHTML.replace("@", "")
+              ).name
+            }`
+          );
+        });
+      }
     });
-  }
   }, []);
+
+  const handleDislike = () => {
+    video.like.includes(user?.uid) && video.like.splice(user?.uid, 1)
+    video.dislike.includes(user?.uid) ? video.dislike.splice(user?.uid, 1) : video.dislike.push(user?.uid)
+    setLike(video.like.includes(user?.uid))
+    setDislike(video.dislike.includes(user?.uid))
+  }
+
+  const handleLike = () => {
+    video.dislike.includes(user?.uid) && video.dislike.splice(user?.uid, 1)
+    video.like.includes(user?.uid) ? video.like.splice(user?.uid, 1) : video.like.push(user?.uid)
+    setLike(video.like.includes(user?.uid))
+    setDislike(video.dislike.includes(user?.uid))
+  }
 
   return (
     <div className="w-full relative h-full min-h-screen overflow-y-auto bg-[#0f0f0f] flex flex-col">
@@ -165,6 +190,8 @@ const Watch = () => {
           {/* Video */}
           <video
             ref={videoRef}
+            onDoubleClick={() => handleFullScreen()}
+            onClick={() => playVideo()}
             onCanPlayThrough={() => {
               setIsLoading(false);
               setVideoDuration(videoRef.current.duration);
@@ -182,7 +209,44 @@ const Watch = () => {
           >
             <source src={video.video} type="video/mp4" />
           </video>
-          <div className="">{isLoading && "Loading"}</div>
+          {isLoading && (
+            <div className="absolute bg-black/50 w-full h-full top-0 z-50 flex items-center justify-center">
+              <svg
+                version="1.1"
+                fill="#FF0000"
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="40px"
+                height="40px"
+                viewBox="0 0 40 40"
+                enableBackground="new 0 0 40 40"
+              >
+                <path
+                  opacity="0.2"
+                  fill="#FF0000"
+                  d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z"
+                />
+                <path
+                  fill="#FF0000"
+                  d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+C22.32,8.481,24.301,9.057,26.013,10.047z"
+                >
+                  <animateTransform
+                    attributeType="xml"
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 20 20"
+                    to="360 20 20"
+                    dur="0.5s"
+                    repeatCount="indefinite"
+                  />
+                </path>
+              </svg>
+            </div>
+          )}
 
           {/* Overlay */}
           <div className="absolute left-0 right-0 bottom-0 w-full h-auto flex flex-col justify-end items-center">
@@ -308,46 +372,89 @@ const Watch = () => {
                 className="px-[2px] w-12 h-12 ml-auto"
                 onClick={() => handleFullScreen()}
               >
-                <svg
-                  height="100%"
-                  version="1.1"
-                  viewBox="0 0 36 36"
-                  fill="white"
-                  width="100%"
-                >
-                  <g className="ytp-fullscreen-button-corner-0">
-                    <use className="ytp-svg-shadow"></use>
-                    <path
-                      className="ytp-svg-fill"
-                      d="m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z"
-                      id="ytp-id-97"
-                    ></path>
-                  </g>
-                  <g className="ytp-fullscreen-button-corner-1">
-                    <use className="ytp-svg-shadow"></use>
-                    <path
-                      className="ytp-svg-fill"
-                      d="m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z"
-                      id="ytp-id-98"
-                    ></path>
-                  </g>
-                  <g className="ytp-fullscreen-button-corner-2">
-                    <use className="ytp-svg-shadow"></use>
-                    <path
-                      className="ytp-svg-fill"
-                      d="m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z"
-                      id="ytp-id-99"
-                    ></path>
-                  </g>
-                  <g className="ytp-fullscreen-button-corner-3">
-                    <use className="ytp-svg-shadow"></use>
-                    <path
-                      className="ytp-svg-fill"
-                      d="M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z"
-                      id="ytp-id-100"
-                    ></path>
-                  </g>
-                </svg>
+                {!isFullScreen ? (
+                  <svg
+                    height="100%"
+                    version="1.1"
+                    viewBox="0 0 36 36"
+                    fill="white"
+                    width="100%"
+                  >
+                    <g className="ytp-fullscreen-button-corner-0">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z"
+                        id="ytp-id-97"
+                      ></path>
+                    </g>
+                    <g className="ytp-fullscreen-button-corner-1">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z"
+                        id="ytp-id-98"
+                      ></path>
+                    </g>
+                    <g className="ytp-fullscreen-button-corner-2">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z"
+                        id="ytp-id-99"
+                      ></path>
+                    </g>
+                    <g className="ytp-fullscreen-button-corner-3">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z"
+                        id="ytp-id-100"
+                      ></path>
+                    </g>
+                  </svg>
+                ) : (
+                  <svg
+                    height="100%"
+                    fill="white"
+                    version="1.1"
+                    viewBox="0 0 36 36"
+                    width="100%"
+                  >
+                    <g className="ytp-fullscreen-button-corner-2">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 14,14 -4,0 0,2 6,0 0,-6 -2,0 0,4 0,0 z"
+                        id="ytp-id-56"
+                      ></path>
+                    </g>
+                    <g className="ytp-fullscreen-button-corner-3">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 22,14 0,-4 -2,0 0,6 6,0 0,-2 -4,0 0,0 z"
+                        id="ytp-id-57"
+                      ></path>
+                    </g>
+                    <g className="ytp-fullscreen-button-corner-0">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 20,26 2,0 0,-4 4,0 0,-2 -6,0 0,6 0,0 z"
+                        id="ytp-id-58"
+                      ></path>
+                    </g>
+                    <g className="ytp-fullscreen-button-corner-1">
+                      <use className="ytp-svg-shadow"></use>
+                      <path
+                        className="ytp-svg-fill"
+                        d="m 10,22 4,0 0,4 2,0 0,-6 -6,0 0,2 0,0 z"
+                        id="ytp-id-59"
+                      ></path>
+                    </g>
+                  </svg>
+                )}
               </button>
             </div>
           </div>
@@ -359,7 +466,7 @@ const Watch = () => {
             dangerouslySetInnerHTML={{ __html: TextFormatter(video.videoName) }}
           />
           {/* Channel Info */}
-          <div className="w-full h-auto flex items-center">
+          <div className="w-[1280px] h-auto flex items-center">
             <img
               src={video.channelProfile}
               className="w-[40px] h-[40px] rounded-full"
@@ -375,8 +482,8 @@ const Watch = () => {
               className={`
             ${
               !isSub(user?.uid)
-                ? "w-[90px] py-2 bg-white rounded-full text-black text-sm ml-7 hover:opacity-90 font-semibold items-center justify-center"
-                : "flex w-[165px] py-2 rounded-full ml-7 bg-[#272727] text-sm font-semibold items-center justify-center hover:bg-[#3f3f3f]"
+                ? "w-[90px] h-[40px] bg-white rounded-full text-black text-sm ml-7 hover:opacity-90 font-semibold items-center justify-center"
+                : "flex w-[165px] h-[40px] rounded-full ml-7 bg-[#272727] text-sm font-semibold items-center justify-center hover:bg-[#3f3f3f]"
             }
           `}
               onClick={HandleSub}
@@ -405,7 +512,169 @@ const Watch = () => {
               )}
               {isSubTheChannel ? "Abonelikten Çık" : "Abone Ol"}
             </button>
+
+            <div className="w-[140px] h-[40px] ml-auto bg-[#272727] flex items-center justify-between rounded-full">
+              {/* Like */}
+              <button
+                className="w-full h-full items-center justify-center flex gap-3 cursor-pointer hover:bg-[#3f3f3f] rounded-l-full"
+                onClick={() => handleLike()}
+              >
+                {like ? (
+                  <svg
+                    viewBox="0 0 24 24"
+                    preserveAspectRatio="xMidYMid meet"
+                    focusable="false"
+                    style={{
+                      pointerEvents: "none",
+                      width: "24px",
+                      height: "24px",
+                      rotate: "180deg",
+                    }}
+                  >
+                    <g>
+                      <path
+                        fill="white"
+                        d="M18,4h3v10h-3V4z M5.23,14h4.23l-1.52,4.94C7.62,19.97,8.46,21,9.62,21c0.58,0,1.14-0.24,1.52-0.65L17,14V4H6.57 C5.5,4,4.59,4.67,4.38,5.61l-1.34,6C2.77,12.85,3.82,14,5.23,14z"
+                      ></path>
+                    </g>
+                  </svg>
+                ) : (
+                  <svg
+                    viewBox="0 0 24 24"
+                    preserveAspectRatio="xMidYMid meet"
+                    focusable="false"
+                    style={{
+                      pointerEvents: "none",
+                      width: "24px",
+                      height: "24px",
+                      rotate: "180deg",
+                    }}
+                  >
+                    <g>
+                      <path
+                        fill="white"
+                        d="M17,4h-1H6.57C5.5,4,4.59,4.67,4.38,5.61l-1.34,6C2.77,12.85,3.82,14,5.23,14h4.23l-1.52,4.94C7.62,19.97,8.46,21,9.62,21 c0.58,0,1.14-0.24,1.52-0.65L17,14h4V4H17z M10.4,19.67C10.21,19.88,9.92,20,9.62,20c-0.26,0-0.5-0.11-0.63-0.3 c-0.07-0.1-0.15-0.26-0.09-0.47l1.52-4.94l0.4-1.29H9.46H5.23c-0.41,0-0.8-0.17-1.03-0.46c-0.12-0.15-0.25-0.4-0.18-0.72l1.34-6 C5.46,5.35,5.97,5,6.57,5H16v8.61L10.4,19.67z M20,13h-3V5h3V13z"
+                      ></path>
+                    </g>
+                  </svg>
+                )}
+                {video.like.length}
+              </button>
+
+              {/* Divider */}
+              <div className="w-[1px] h-full bg-white/20"></div>
+
+              {/* Dislike */}
+              <button
+                className="w-full h-full items-center justify-center flex gap-3 cursor-pointer hover:bg-[#3f3f3f] rounded-r-full"
+                onClick={() => handleDislike()}
+              >
+                {video.dislike.length}
+                {dislike ? (
+                  <svg
+                    viewBox="0 0 24 24"
+                    preserveAspectRatio="xMidYMid meet"
+                    focusable="false"
+                    style={{
+                      pointerEvents: "none",
+                      width: "24px",
+                      height: "24px",
+                    }}
+                  >
+                    <g>
+                      <path
+                        fill="white"
+                        d="M18,4h3v10h-3V4z M5.23,14h4.23l-1.52,4.94C7.62,19.97,8.46,21,9.62,21c0.58,0,1.14-0.24,1.52-0.65L17,14V4H6.57 C5.5,4,4.59,4.67,4.38,5.61l-1.34,6C2.77,12.85,3.82,14,5.23,14z"
+                      ></path>
+                    </g>
+                  </svg>
+                ) : (
+                  <svg
+                    viewBox="0 0 24 24"
+                    preserveAspectRatio="xMidYMid meet"
+                    focusable="false"
+                    style={{
+                      pointerEvents: "none",
+                      width: "24px",
+                      height: "24px",
+                    }}
+                  >
+                    <g>
+                      <path
+                        fill="white"
+                        d="M17,4h-1H6.57C5.5,4,4.59,4.67,4.38,5.61l-1.34,6C2.77,12.85,3.82,14,5.23,14h4.23l-1.52,4.94C7.62,19.97,8.46,21,9.62,21 c0.58,0,1.14-0.24,1.52-0.65L17,14h4V4H17z M10.4,19.67C10.21,19.88,9.92,20,9.62,20c-0.26,0-0.5-0.11-0.63-0.3 c-0.07-0.1-0.15-0.26-0.09-0.47l1.52-4.94l0.4-1.29H9.46H5.23c-0.41,0-0.8-0.17-1.03-0.46c-0.12-0.15-0.25-0.4-0.18-0.72l1.34-6 C5.46,5.35,5.97,5,6.57,5H16v8.61L10.4,19.67z M20,13h-3V5h3V13z"
+                      ></path>
+                    </g>
+                  </svg>
+                )}
+              </button>
+            </div>
+            <a href={video.video} download className="w-[90px] h-[40px] ml-3 bg-[#272727] flex items-center justify-center rounded-full text-[14px] cursor-pointer hover:bg-[#3f3f3f] font-semibold">
+              <svg
+                viewBox="0 0 24 24"
+                preserveAspectRatio="xMidYMid meet"
+                focusable="false"
+                style={{
+                  pointerEvents: "none",
+                  width: "24px",
+                  height: "24px",
+                  marginRight: 5,
+                }}
+              >
+                <g>
+                  <path
+                    fill="white"
+                    d="M17 18V19H6V18H17ZM16.5 11.4L15.8 10.7L12 14.4V4H11V14.4L7.2 10.6L6.5 11.3L11.5 16.3L16.5 11.4Z"
+                  ></path>
+                </g>
+              </svg>
+              İndir
+            </a>
           </div>
+
+          <div className="w-[1280px] h-auto px-3 py-2 rounded-xl bg-[#272727] flex flex-col mt-5">
+            <h1 className="text-sm font-semibold">{video.view} görüntülenme - <span className="font-normal">{video.date}</span></h1>
+            <p dangerouslySetInnerHTML={{ __html: TextFormatter(video.desription) }} className="text-sm py-5"/>
+          </div>
+
+          {/* Comments */}
+          <div className="w-[1280px] h-auto my-5 flex flex-col">
+            <p>{video.comments.length} Yorum</p>
+            <div className="flex w-full h-auto gap-3 mt-3">
+              <img src={user?.photoURL} className="w-[40px] h-[40px] rounded-full" />
+              <input value={comment} onChange={(e) => setComment(e.target.value)} type="text" className="w-full h-[25px] outline-none rounded-none border-b-[1px] border-r-0 border-l-0 border-t-0 pb-3 text-sm border-b-[rgba(255, 255, 255, 0.1)] p-0" placeholder="Yorum Ekleyin..."/>
+            </div>
+              <div className="w-full p-0 m-0 flex items-center justify-end">
+                <button onClick={() => {
+                  const cmnt = {
+                    photoURL: user?.photoURL,
+                    comment: comment,
+                    name: user?.displayName,
+                    date: "1 day ago"
+                  }
+                  video.comments.push(cmnt)
+                  setComment("")
+                  console.log(video.comments)
+                }} disabled={comment === ""} className="px-4 py-3 disabled:pointer-events-none disabled:opacity-25 bg-[#3ea6ff] text-black rounded-full text-sm hover:opacity-90">
+                  Yorum Yap
+                </button>
+              </div>
+
+            <div className="w-full h-auto flex flex-col gap-10">
+              {video.comments?.map((comment) => {
+                return(
+                <div className="w-full h-auto flex gap-3 items-center">
+                  <img src={comment?.photoURL} className="w-[40px] h-[40px] rounded-full"/>
+                  <h1 className="w-full flex flex-col items-start justify-start h-auto">
+                    <span className="text-[12px] font-semibold">{comment?.name} - <span className="font-normal text-xs text-[#aaaa]">{comment?.date}</span></span>
+                    <span className="text-[14px] pt-1 w-full h-auto flex flex-wrap">{comment?.comment}</span>
+                  </h1>
+                </div>
+                )
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
