@@ -1,4 +1,4 @@
-import { getDatabase } from "firebase/database";
+import { child, get, getDatabase, ref, set } from "firebase/database";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import "firebase/firestore";
@@ -18,5 +18,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const auth = getAuth(app);
+
+export const createUser = (uid) => {
+  const dbref = ref(database)
+  get(child(dbref, `/${uid}`)).then((snap) => {
+    if(!snap.exists()) {
+      set(ref(database, `/${uid}`), {
+        id: new Date().getTime().toString(),
+        photoURL: auth.currentUser.photoURL,
+        email: auth.currentUser.email,
+        displayName: auth.currentUser.displayName,
+        likeVideos: [],
+        dislikeVideos: [],
+        videos: [],
+        history: [],
+        watchLater: []
+      })
+    }
+  })
+}
 
 export { database, auth, app };

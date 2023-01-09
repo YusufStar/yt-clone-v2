@@ -3,8 +3,9 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login, logout } from "../features/AuthSlice";
-import { auth } from "../FirebaseConfig";
-import Button from "./Button";
+import { auth, createUser } from "../FirebaseConfig";
+import CreateVideoButton from "./CreateVideoButton";
+import CreateVideoModalComp from "./CreateVideoModalComp";
 import NotificationsButton from "./NotificationsButton";
 
 const Navbar = ({ defaultSearchText = "" }) => {
@@ -13,6 +14,7 @@ const Navbar = ({ defaultSearchText = "" }) => {
   const { user } = useSelector((state) => state.Auth);
   const dispatch = useDispatch();
   const [NotificationModal, SetNotificationModal] = useState(false);
+  const [CreateVideoModal, setCreateVideoModal] = useState(false)
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -28,12 +30,14 @@ const Navbar = ({ defaultSearchText = "" }) => {
     signInWithPopup(auth, provider)
       .then((res) => {
         dispatch(login(res.user));
+        createUser(res.user.uid)
       })
       .catch((err) => console.log(err));
   };
 
   return (
     <div className="px-4 fixed w-full bg-[#0f0f0f] z-10 flex items-center justify-between h-14">
+      {CreateVideoModal && <CreateVideoModalComp setModal={setCreateVideoModal} />}
       <div className="flex items-center flex-1">
         {/* Menu Btn */}
         <button className="p-2 rounded-full hover:bg-[#272727] mr-4">
@@ -177,31 +181,12 @@ const Navbar = ({ defaultSearchText = "" }) => {
       <div className="min-w-[225px] flex flex-1 items-center justify-end">
         {user ? (
           <div className="flex-1 w-full h-full flex items-center justify-end">
-            <Button
-              Icon={() => {
-                return (
-                  <svg
-                    viewBox="0 0 24 24"
-                    preserveAspectRatio="xMidYMid meet"
-                    focusable="false"
-                    className=""
-                    style={{
-                      pointerEvents: "none",
-                      width: "24px",
-                      height: "24px",
-                    }}
-                  >
-                    <g className="">
-                      <path
-                        fill="white"
-                        d="M14,13h-3v3H9v-3H6v-2h3V8h2v3h3V13z M17,6H3v12h14v-6.39l4,1.83V8.56l-4,1.83V6 M18,5v3.83L22,7v8l-4-1.83V19H2V5H18L18,5 z"
-                        className=""
-                      ></path>
-                    </g>
-                  </svg>
-                );
-              }}
+            {/* Create Video Button */}
+            <CreateVideoButton
+            CreateVideoModal={CreateVideoModal}
+            SetCreateVideoModal={setCreateVideoModal}
             />
+
             {/* Notification Button */}
             <NotificationsButton
               notificationCount={1}
