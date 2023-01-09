@@ -3,10 +3,15 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login, logout } from "../features/AuthSlice";
-import { auth, createUser } from "../FirebaseConfig";
+import { auth, createUser, storage } from "../FirebaseConfig";
 import CreateVideoButton from "./CreateVideoButton";
 import CreateVideoModalComp from "./CreateVideoModalComp";
 import NotificationsButton from "./NotificationsButton";
+import {
+  getDownloadURL,
+  ref as strRef,
+  uploadBytesResumable,
+} from "firebase/storage"
 
 const Navbar = ({ defaultSearchText = "" }) => {
   const navigate = useNavigate();
@@ -15,6 +20,10 @@ const Navbar = ({ defaultSearchText = "" }) => {
   const dispatch = useDispatch();
   const [NotificationModal, SetNotificationModal] = useState(false);
   const [CreateVideoModal, setCreateVideoModal] = useState(false)
+  const [videoProg, setvideoProg] = useState(null)
+  const [videoUrl, setVideoUrl] = useState("")
+  const [bannerProg, setBannerProg] = useState(null)
+  const [bannerUrl, setBannerUrl] = useState("")
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -35,9 +44,58 @@ const Navbar = ({ defaultSearchText = "" }) => {
       .catch((err) => console.log(err));
   };
 
+const uploadFiles = (file, action) => {
+  if(action === "video") {
+    if (!file) return;
+  const storageRef = strRef(storage, `/videos/${file.name}`);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  uploadTask.on(
+    "state_changed",
+    (snapsot) => {
+      const prog = Math.round(
+        (snapsot.bytesTransferred / snapsot.totalBytes) * 100
+      );
+      setvideoProg(prog)
+    },
+    (err) => console.log(err),
+    () => {
+      getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+        setVideoUrl(url)
+      });
+    }
+  );
+  } else if (action === "banner") {
+    if (!file) return;
+  const storageRef = strRef(storage, `/Banners/${file.name}`);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  uploadTask.on(
+    "state_changed",
+    (snapsot) => {
+      const prog = Math.round(
+        (snapsot.bytesTransferred / snapsot.totalBytes) * 100
+      );
+      setBannerProg(prog)
+    },
+    (err) => console.log(err),
+    () => {
+      getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+        setBannerUrl(url)
+      });
+    }
+  );
+  }
+};
+
   return (
     <div className="px-4 fixed w-full bg-[#0f0f0f] z-10 flex items-center justify-between h-14">
-      {CreateVideoModal && <CreateVideoModalComp setModal={setCreateVideoModal} />}
+      {CreateVideoModal && <CreateVideoModalComp videoComplateDetail={{
+        videoUrl: videoUrl,
+        videoProg: videoProg,
+        bannerUrl: bannerUrl,
+        bannerProg: bannerProg,
+      }} uploadFiles={uploadFiles} setModal={setCreateVideoModal} />}
       <div className="flex items-center flex-1">
         {/* Menu Btn */}
         <button className="p-2 rounded-full hover:bg-[#272727] mr-4">

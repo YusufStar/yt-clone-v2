@@ -5,21 +5,20 @@ import { Channels, videos } from "../Data";
 import Slider from "@mui/material/Slider";
 import screenfull from "screenfull";
 import { useSelector } from "react-redux";
+import { child, get, push, ref, remove, set, update } from "firebase/database";
+import { database } from "../FirebaseConfig";
 
 const Watch = () => {
   const { id } = useParams();
   const { user } = useSelector((state) => state.Auth);
-  const video = videos.find((video) => video.id === id);
+  const [data, setData] = useState(null);
+  const [video, setvideo] = useState(null);
   const videoRef = useRef(null);
   const progressRef = useRef(null);
   const bufferRef = useRef(null);
   const navigate = useNavigate();
-  const channelInfo = Channels.find(
-    (channel) => channel.name === video.channelName
-  );
-  const [isSubTheChannel, SetIsSubTheChannel] = useState(
-    channelInfo.subscribers.includes(user?.uid)
-  );
+  const channelInfo = data?.Channels[video?.uid];
+  const isSubTheChannel = channelInfo?.subscribers?.includes(user?.uid);
 
   {
     /* States */
@@ -31,9 +30,18 @@ const Watch = () => {
   const [mute, setMute] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [like, setLike] = useState(video.like.includes(user?.uid))
-  const [dislike, setDislike] = useState(video.dislike.includes(user?.uid))
-  const [comment, setComment] = useState("")
+  const [comment, setComment] = useState("");
+  const [updateData, setUpdateData] = useState(false);
+
+  useEffect(() => {
+    const dbref = ref(database);
+    get(child(dbref, `/`)).then((snap) => {
+      if (snap.exists()) {
+        setData(snap.val());
+        setvideo(snap.val().videos[id]);
+      }
+    });
+  }, [updateData]);
 
   const playVideo = () => {
     isPlaying ? videoRef.current.pause() : videoRef.current.play();
@@ -109,40 +117,43 @@ const Watch = () => {
   };
 
   const TextFormatter = (tweet) => {
-    tweet = tweet
-      .replace(/@([\w]+)/g, "<span id='hat'>@$1</span>")
-      .replace(/#([\wşçöğüıİ]+)/gi, "<span id='hash'>#$1</span>")
-      .replace(/(https?:\/\/[\w\.\/]+)/, "<span>$1</span>")
-      .replace(/\n/g, "<br />");
-    return tweet;
+    if (tweet) {
+      return tweet
+        .replace(/@([\w]+)/g, "<span id='hat'>@$1</span>")
+        .replace(/#([\wşçöğüıİ]+)/gi, "<span id='hash'>#$1</span>")
+        .replace(/(https?:\/\/[\w\.\/]+)/, "<span>$1</span>")
+        .replace(/\n/g, "<br />");
+    } else {
+      return tweet;
+    }
   };
 
   const isSub = (uid) => {
-    const channelInfo = Channels.find(
-      (channel) => channel.name === video.channelName
-    );
-    const result = channelInfo.subscribers.includes(uid);
+    const result = channelInfo?.subscribers?.includes(uid);
     return result;
   };
 
   const HandleSub = () => {
-    const channelInfo = Channels.find(
-      (channel) => channel.name === video.channelName
-    );
     if (!isSub(user?.uid)) {
       {
         /* Abone Ol */
       }
-      channelInfo.subscribers.push(user?.uid);
-      SetIsSubTheChannel(true);
+      set(
+        ref(database, `/Channels/${channelInfo?.uid}/subscribers`, user?.uid),
+        channelInfo?.subscribers
+          ? [...channelInfo?.subscribers, user?.uid]
+          : [...[], user?.uid]
+      );
+      setUpdateData(!updateData);
     } else {
       {
         /* Abonelikten çık */
       }
-      channelInfo.subscribers.splice(user?.uid, 1);
-      SetIsSubTheChannel(false);
+      remove(
+        ref(database, `/Channels/${channelInfo?.uid}/subscribers`, user?.uid)
+      );
+      setUpdateData(!updateData);
     }
-    console.log(channelInfo.subscribers);
   };
 
   useEffect(() => {
@@ -163,18 +174,29 @@ const Watch = () => {
   }, []);
 
   const handleDislike = () => {
-    video.like.includes(user?.uid) && video.like.splice(user?.uid, 1)
-    video.dislike.includes(user?.uid) ? video.dislike.splice(user?.uid, 1) : video.dislike.push(user?.uid)
-    setLike(video.like.includes(user?.uid))
-    setDislike(video.dislike.includes(user?.uid))
-  }
+    remove(ref(database, `/Channels/${id}/dislike`, user?.uid));
+    video?.like?.includes(user?.uid) &&
+      remove(ref(database, `/videos/${id}/like`, user?.uid));
+    video?.dislike?.includes(user?.uid)
+      ? remove(ref(database, `/Channels/${id}/dislike`, user?.uid))
+      : set(
+          ref(database, `/videos/${id}/dislike`, user?.uid),
+          video?.dislike ? [...video?.dislike, user?.uid] : [...[], user?.uid]
+        );
+    setUpdateData(!updateData);
+  };
 
   const handleLike = () => {
-    video.dislike.includes(user?.uid) && video.dislike.splice(user?.uid, 1)
-    video.like.includes(user?.uid) ? video.like.splice(user?.uid, 1) : video.like.push(user?.uid)
-    setLike(video.like.includes(user?.uid))
-    setDislike(video.dislike.includes(user?.uid))
-  }
+    video?.dislike?.includes(user?.uid) &&
+      remove(ref(database, `/videos/${id}/dislike`, user?.uid));
+    video?.like?.includes(user?.uid)
+      ? remove(ref(database, `/Channels/${id}/like`, user?.uid))
+      : set(
+          ref(database, `/videos/${id}/like`, user?.uid),
+          video?.like ? [...video?.like, user?.uid] : [...[], user?.uid]
+        );
+    setUpdateData(!updateData);
+  };
 
   return (
     <div className="w-full relative h-full min-h-screen overflow-y-auto bg-[#0f0f0f] flex flex-col">
@@ -190,7 +212,6 @@ const Watch = () => {
           {/* Video */}
           <video
             ref={videoRef}
-            onDoubleClick={() => handleFullScreen()}
             onClick={() => playVideo()}
             onCanPlayThrough={() => {
               setIsLoading(false);
@@ -207,7 +228,7 @@ const Watch = () => {
               isFullScreen ? "w-full h-full" : "w-[1280px] h-[720px]"
             }`}
           >
-            <source src={video.video} type="video/mp4" />
+            <source src={video?.video} type="video/mp4" />
           </video>
           {isLoading && (
             <div className="absolute bg-black/50 w-full h-full top-0 z-50 flex items-center justify-center">
@@ -463,26 +484,28 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
         <div className="w-full h-full flex flex-col">
           <h1
             className="text-[20px] font-semibold formatText my-3"
-            dangerouslySetInnerHTML={{ __html: TextFormatter(video.videoName) }}
+            dangerouslySetInnerHTML={{
+              __html: TextFormatter(video?.videoName),
+            }}
           />
           {/* Channel Info */}
           <div className="w-[1280px] h-auto flex items-center">
             <img
-              src={video.channelProfile}
+              src={video?.channelProfile}
               className="w-[40px] h-[40px] rounded-full"
             />
             <h1 className="flex flex-col justify-start ml-3 items-start h-auto w-auto">
               <span className="text-white font-semibold">
-                {video.channelName}
+                {video?.channelName}
               </span>
-              <span className="text-[#aaa] text-sm">{video.view} abone</span>
+              <span className="text-[#aaa] text-sm">{video?.view} abone</span>
             </h1>
             {/* Abone Ol Butonu */}
             <button
               className={`
             ${
               !isSub(user?.uid)
-                ? "w-[90px] h-[40px] bg-white rounded-full text-black text-sm ml-7 hover:opacity-90 font-semibold items-center justify-center"
+                ? "w-[150px] h-[40px] bg-white rounded-full flex text-black text-sm ml-7 px-2 hover:opacity-90 font-semibold items-center justify-center"
                 : "flex w-[165px] h-[40px] rounded-full ml-7 bg-[#272727] text-sm font-semibold items-center justify-center hover:bg-[#3f3f3f]"
             }
           `}
@@ -493,7 +516,7 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                   viewBox="0 0 24 24"
                   preserveAspectRatio="xMidYMid meet"
                   focusable="false"
-                  class="style-scope yt-icon"
+                  className="style-scope yt-icon"
                   style={{
                     pointerEvents: "none",
                     width: "24px",
@@ -519,7 +542,7 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                 className="w-full h-full items-center justify-center flex gap-3 cursor-pointer hover:bg-[#3f3f3f] rounded-l-full"
                 onClick={() => handleLike()}
               >
-                {like ? (
+                {video?.like?.includes(user?.uid) ? (
                   <svg
                     viewBox="0 0 24 24"
                     preserveAspectRatio="xMidYMid meet"
@@ -558,7 +581,7 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                     </g>
                   </svg>
                 )}
-                {video.like.length}
+                {video?.like ? video?.like?.length : 0}
               </button>
 
               {/* Divider */}
@@ -569,8 +592,8 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                 className="w-full h-full items-center justify-center flex gap-3 cursor-pointer hover:bg-[#3f3f3f] rounded-r-full"
                 onClick={() => handleDislike()}
               >
-                {video.dislike.length}
-                {dislike ? (
+                {video?.dislike ? video?.dislike?.length : 0}
+                {video?.dislike?.includes(user?.uid) ? (
                   <svg
                     viewBox="0 0 24 24"
                     preserveAspectRatio="xMidYMid meet"
@@ -609,7 +632,11 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                 )}
               </button>
             </div>
-            <a href={video.video} download className="w-[90px] h-[40px] ml-3 bg-[#272727] flex items-center justify-center rounded-full text-[14px] cursor-pointer hover:bg-[#3f3f3f] font-semibold">
+            <a
+              href={video?.video}
+              download
+              className="w-[90px] h-[40px] ml-3 bg-[#272727] flex items-center justify-center rounded-full text-[14px] cursor-pointer hover:bg-[#3f3f3f] font-semibold"
+            >
               <svg
                 viewBox="0 0 24 24"
                 preserveAspectRatio="xMidYMid meet"
@@ -633,48 +660,95 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
           </div>
 
           <div className="w-[1280px] h-auto px-3 py-2 rounded-xl bg-[#272727] flex flex-col mt-5">
-            <h1 className="text-sm font-semibold">{video.view} görüntülenme - <span className="font-normal">{video.date}</span></h1>
-            <p dangerouslySetInnerHTML={{ __html: TextFormatter(video.desription) }} className="text-sm py-5"/>
+            <h1 className="text-sm font-semibold">
+              {video?.view} görüntülenme -{" "}
+              <span className="font-normal">
+                {new Date(Number(video?.date)).toLocaleDateString()}
+              </span>
+            </h1>
+            <p
+              dangerouslySetInnerHTML={{
+                __html: TextFormatter(video?.desription),
+              }}
+              className="text-sm py-5"
+            />
           </div>
 
           {/* Comments */}
           <div className="w-[1280px] h-auto my-5 flex flex-col">
-            <p>{video.comments.length} Yorum</p>
+            <p>{video?.comments ? video?.comments?.length : 0} Yorum</p>
             <div className="flex w-full h-auto gap-3 mt-3">
-              <img src={user?.photoURL} className="w-[40px] h-[40px] rounded-full" />
-              <input value={comment} onChange={(e) => setComment(e.target.value)} type="text" className="w-full h-[25px] outline-none rounded-none border-b-[1px] border-r-0 border-l-0 border-t-0 pb-3 text-sm border-b-[rgba(255, 255, 255, 0.1)] p-0" placeholder="Yorum Ekleyin..."/>
+              <img
+                src={user?.photoURL}
+                className="w-[40px] h-[40px] rounded-full"
+              />
+              <input
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                type="text"
+                className="w-full h-[25px] outline-none rounded-none border-b-[1px] border-r-0 border-l-0 border-t-0 pb-3 text-sm border-b-[rgba(255, 255, 255, 0.1)] p-0"
+                placeholder="Yorum Ekleyin..."
+              />
             </div>
-              <div className="w-full p-0 m-0 flex items-center justify-end">
-                <button onClick={() => {
-                  const cmnt = {
-                    photoURL: user?.photoURL,
-                    comment: comment,
-                    name: user?.displayName,
-                    date: "1 day ago"
-                  }
-                  video.comments.push(cmnt)
+            <div className="w-full p-0 m-0 flex items-center justify-end mb-5">
+              <button
+                onClick={() => {
+                  set(
+                    ref(database, `/videos/${id}/comments`),
+                    video?.comments
+                      ? [
+                          ...video?.comments,
+                          {
+                            photoURL: user?.photoURL,
+                            name: user?.displayName,
+                            date: new Date().getTime(),
+                            comment: comment
+                          },
+                        ]
+                      : [
+                          ...[],
+                          {
+                            photoURL: user?.photoURL,
+                            name: user?.displayName,
+                            date: new Date().getTime(),
+                            comment: comment
+                          },
+                        ]
+                  );
                   setComment("")
-                  console.log(video.comments)
-                }} disabled={comment === ""} className="px-4 py-3 disabled:pointer-events-none disabled:opacity-25 bg-[#3ea6ff] text-black rounded-full text-sm hover:opacity-90">
-                  Yorum Yap
-                </button>
-              </div>
+                  setUpdateData(!updateData)
+                }}
+                disabled={comment === ""}
+                className="px-4 py-3 disabled:pointer-events-none disabled:opacity-25 bg-[#3ea6ff] text-black rounded-full text-sm hover:opacity-90"
+              >
+                Yorum Yap
+              </button>
+            </div>
 
-            <div className="w-full h-auto flex flex-col gap-10">
-              {video.comments?.map((comment) => {
-                return(
-                <div className="w-full h-auto flex gap-3 items-center">
-                  <img src={comment?.photoURL} className="w-[40px] h-[40px] rounded-full"/>
-                  <h1 className="w-full flex flex-col items-start justify-start h-auto">
-                    <span className="text-[12px] font-semibold">{comment?.name} - <span className="font-normal text-xs text-[#aaaa]">{comment?.date}</span></span>
-                    <span className="text-[14px] pt-1 w-full h-auto flex flex-wrap">{comment?.comment}</span>
-                  </h1>
-                </div>
-                )
+            <div className="w-full h-auto flex flex-col gap-10 mb-20">
+              {video?.comments?.map((comment) => {
+                return (
+                  <div className="w-full h-auto flex gap-3 items-center">
+                    <img
+                      src={comment?.photoURL}
+                      className="w-[40px] h-[40px] rounded-full"
+                    />
+                    <h1 className="w-full flex flex-col items-start justify-start h-auto">
+                      <span className="text-[12px] font-semibold">
+                        {comment?.name} -{" "}
+                        <span className="font-normal text-xs text-[#aaaa]">
+                          {new Date(Number(comment?.date)).toLocaleDateString()}
+                        </span>
+                      </span>
+                      <span className="text-[14px] pt-1 w-full h-auto flex flex-wrap">
+                        {comment?.comment}
+                      </span>
+                    </h1>
+                  </div>
+                );
               })}
             </div>
           </div>
-
         </div>
       </div>
     </div>

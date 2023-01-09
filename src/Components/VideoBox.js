@@ -1,17 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const VideoBox = ({ video }) => {
+const VideoBox = ({ video, id }) => {
   const navigate = useNavigate()
 
   return (
-    <div onClick={() => navigate(`/Watch/${video.id}`)} className="flex flex-col relative h-full max-h-[345px] min-h-[300px] mx-2 mb-10 thumb max-w-[360px] min-w-[320px]">
+    <div onClick={() => navigate(`/Watch/${id}`)} className="flex flex-col relative h-full max-h-[345px] min-h-[300px] mx-2 mb-10 thumb max-w-[360px] min-w-[320px]">
       <a href="" className="w-full relative">
         <img
           src={video.banner}
           className="w-full min-h-[200px] max-h-[210px] rounded-xl"
         />
-        <p className="absolute right-1 bottom-3 text-white text-xs py-[3px] px-[4px] h-[12px] rounded-[4px] bg-black">
+        <p className="absolute right-1 bottom-3 text-white text-xs py-[3px] px-[4px] h-[24px] rounded-[4px] bg-black">
           50:17
         </p>
       </a>
@@ -31,7 +31,7 @@ const VideoBox = ({ video }) => {
             {video.channelName}
           </p>
           <p className="text-sm text-[#aaa] font-medium">
-            {video.view} • {video.date}
+            {video.view} • {new Date(Number(video.date)).toLocaleDateString()}
           </p>
         </div>
       </div>
