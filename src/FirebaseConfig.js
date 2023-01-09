@@ -31,7 +31,7 @@ export const createUser = (uid) => {
         id: new Date().getTime().toString(),
         photoURL: auth.currentUser.photoURL,
         email: auth.currentUser.email,
-        name: auth.currentUser.displayName,
+        name: auth.currentUser.displayName.replace(" ", ""),
         uid: auth.currentUser.uid,
         likeVideos: [],
         dislikeVideos: [],
@@ -62,7 +62,7 @@ export const createVideo = (video, banner, desc, videoName) => {
     banner: banner,
     channelProfile: auth.currentUser.photoURL,
     videoName: videoName,
-    channelName: auth.currentUser.displayName,
+    channelName: auth.currentUser.displayName.replace(" ", ""),
     view: "1 B",
     date: date,
     video: video,
@@ -73,7 +73,7 @@ export const createVideo = (video, banner, desc, videoName) => {
     get(child(dbref, `/Channels/${uid}`)).then((snap) => {
       if (snap.exists()) {
         update(ref(database, `/Channels/${uid}`), {
-          videos: snap.val.videos ? [...snap.val.videos, key] : [...[], newVideo.key]
+          videos: snap.val.videos ? [...snap.val.videos, key] : [...[], key]
         });
       }
     });

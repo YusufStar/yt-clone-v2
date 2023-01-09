@@ -15,6 +15,8 @@ const Home = () => {
     get(child(dbref, `/`)).then((snap) => {
       if (snap.exists()) {
         setData(snap.val())
+      } else {
+        setData(null)
       }
     });
   }, []);
@@ -24,7 +26,7 @@ const Home = () => {
       <Navbar defaultSearchText={id ? id : ""} />
       <div className="flex h-full pt-16 bg-[#0f0f0f]">
         <SideBar />
-        <AllVideos data={data}/>
+        {data && <AllVideos data={data}/>}
       </div>
     </div>
   );

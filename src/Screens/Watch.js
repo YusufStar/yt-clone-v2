@@ -161,13 +161,12 @@ const Watch = () => {
     element.forEach((el) => {
       if (el) {
         el.addEventListener("click", () => {
-          navigate(
-            `/User/${
-              Channels.find(
-                (channel) => channel.name === el?.innerHTML.replace("@", "")
-              ).name
-            }`
+          //navigate(`/User/${user}`)
+          const res = Object.keys(data?.Channels).find(
+            (key) => data?.Channels[key].name === el.innerHTML.replace("@", "")
           );
+          const name = data?.Channels[res].name;
+          navigate(`/User/${name}`);
         });
       }
     });
@@ -199,14 +198,14 @@ const Watch = () => {
   };
 
   return (
-    <div className="w-full relative h-full min-h-screen overflow-y-auto bg-[#0f0f0f] flex flex-col">
+    <div className="w-full relative h-full min-h-screen overflow-y-auto bg-[#0f0f0f] flex">
       <Navbar />
-      <div className="flex w-full px-24 pt-20 h-full flex-col min-h-full">
+      <div className="flex w-full pl-24 pr-6 pt-20 max-w-[1400px] h-full flex-col min-h-full">
         <div
           className={`${
             isFullScreen
               ? "absolute w-full h-full p-0 top-0 left-0 right-0 bottom-0 z-30"
-              : "relative w-[1280px] h-[720pxpx]"
+              : "relative w-[1280px] h-[720px]"
           }`}
         >
           {/* Video */}
@@ -227,9 +226,8 @@ const Watch = () => {
             className={`${
               isFullScreen ? "w-full h-full" : "w-[1280px] h-[720px]"
             }`}
-          >
-            <source src={video?.video} type="video/mp4" />
-          </video>
+            src={video?.video}
+          />
           {isLoading && (
             <div className="absolute bg-black/50 w-full h-full top-0 z-50 flex items-center justify-center">
               <svg
@@ -668,7 +666,7 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
             </h1>
             <p
               dangerouslySetInnerHTML={{
-                __html: TextFormatter(video?.desription),
+                __html: TextFormatter(video?.description),
               }}
               className="text-sm py-5"
             />
@@ -702,7 +700,7 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                             photoURL: user?.photoURL,
                             name: user?.displayName,
                             date: new Date().getTime(),
-                            comment: comment
+                            comment: comment,
                           },
                         ]
                       : [
@@ -711,12 +709,12 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                             photoURL: user?.photoURL,
                             name: user?.displayName,
                             date: new Date().getTime(),
-                            comment: comment
+                            comment: comment,
                           },
                         ]
                   );
-                  setComment("")
-                  setUpdateData(!updateData)
+                  setComment("");
+                  setUpdateData(!updateData);
                 }}
                 disabled={comment === ""}
                 className="px-4 py-3 disabled:pointer-events-none disabled:opacity-25 bg-[#3ea6ff] text-black rounded-full text-sm hover:opacity-90"
@@ -726,9 +724,12 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
             </div>
 
             <div className="w-full h-auto flex flex-col gap-10 mb-20">
-              {video?.comments?.map((comment) => {
+              {video?.comments?.map((comment, key) => {
                 return (
-                  <div className="w-full h-auto flex gap-3 items-center">
+                  <div
+                    key={key}
+                    className="w-full h-auto flex gap-3 items-center"
+                  >
                     <img
                       src={comment?.photoURL}
                       className="w-[40px] h-[40px] rounded-full"
@@ -750,6 +751,43 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
             </div>
           </div>
         </div>
+      </div>
+      <div className="w-[170px] h-auto min-h-screen gap-4 pt-20">
+        {Object.keys({ ...data?.videos }).map((video) => {
+          return (
+            <div
+              className="flex gap-2 w-full h-[95px] cursor-pointer min-w-[300px]"
+              onClick={() => navigate(`/Watch/${video}`)}
+            >
+              <div className="h-full min-w-[170px] rounded-xl relative">
+                <img
+                  src={data?.videos[video].banner}
+                  className="h-full rounded-xl w-[170px] relative"
+                />
+                <p className="absolute right-1 bottom-1 text-white text-xs py-[3px] px-[4px] h-[24px] rounded-md bg-black">
+                  50:17
+                </p>
+              </div>
+
+              <div className="w-[300px] h-full flex flex-col">
+                <h1 className="flex flex-wrap w-[50px] text-sm font-semibold text-white">
+                  {data?.videos[video].videoName}
+                </h1>
+
+                <h1 className="flex flex-wrap w-[50px] pt-2 text-xs font-medium text-[#aaa]">
+                  {data?.videos[video].channelName}
+                </h1>
+
+                <p className="text-xs pt-2 text-[#aaa] font-medium ">
+                  {data?.videos[video].view} •{" "}
+                  {new Date(
+                    Number(data?.videos[video].date)
+                  ).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
