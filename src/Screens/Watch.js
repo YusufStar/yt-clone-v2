@@ -752,7 +752,7 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
           </div>
         </div>
       </div>
-      <div className="w-[170px] h-auto min-h-screen gap-4 pt-20">
+      <div className="w-[170px] h-auto flex flex-col min-h-screen gap-4 pt-20">
         {Object.keys({ ...data?.videos }).map((video) => {
           return (
             <div
@@ -769,16 +769,16 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                 </p>
               </div>
 
-              <div className="w-[300px] h-full flex flex-col">
-                <h1 className="flex flex-wrap w-[50px] text-sm font-semibold text-white">
-                  {data?.videos[video].videoName}
+              <div className="w-[300px] h-full max-h-[95px] flex flex-col">
+                <h1 className="flex flex-wrap h-auto mb-3 w-full text-sm font-semibold text-white">
+                  {data?.videos[video]?.videoName?.slice(0, 25)}
                 </h1>
 
-                <h1 className="flex flex-wrap w-[50px] pt-2 text-xs font-medium text-[#aaa]">
+                <h1 className="flex flex-wrap w-[50px] text-xs font-medium text-[#aaa]">
                   {data?.videos[video].channelName}
                 </h1>
 
-                <p className="text-xs pt-2 text-[#aaa] font-medium ">
+                <p className="text-xs w-full pt-1 text-[#aaa] font-medium ">
                   {data?.videos[video].view} •{" "}
                   {new Date(
                     Number(data?.videos[video].date)

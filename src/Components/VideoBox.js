@@ -5,7 +5,7 @@ const VideoBox = ({ video, id }) => {
   const navigate = useNavigate()
 
   return (
-    <div onClick={() => navigate(`/Watch/${id}`)} className="flex flex-col relative h-full max-h-[345px] min-h-[300px] mx-2 mb-10 thumb max-w-[360px] min-w-[320px]">
+    <div onClick={() => navigate(`/Watch/${id}`)} className="flex flex-col relative h-full max-h-[345px] min-h-[300px] mx-2 mb-10 thumb max-w-[360px] min-w-[300px]">
       <a href="" className="w-full relative">
         <img
           src={video.banner}
@@ -25,7 +25,7 @@ const VideoBox = ({ video, id }) => {
         </div>
         <div className="w-[90%] flex flex-col gap-3 pl-3">
           <h1 className="text-white font-[500]">
-            {video.videoName}
+            {video.videoName.slice(0, 39)}
           </h1>
           <p className="text-sm text-[#aaa] font-medium leading-[1px]">
             {video.channelName}

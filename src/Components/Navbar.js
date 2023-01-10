@@ -28,7 +28,7 @@ const Navbar = ({ defaultSearchText = "" }) => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm !== "") {
-      navigate("Search/" + searchTerm);
+      navigate("/Search/" + searchTerm);
     } else if (searchTerm === "") {
       navigate("/");
     }
