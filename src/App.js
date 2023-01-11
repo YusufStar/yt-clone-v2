@@ -1,41 +1,24 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom/dist";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./Screens/Home";
 import Watch from "./Screens/Watch";
 import User from "./Screens/User";
 import Playlist from "./Screens/Playlist";
 import LikeVideos from "./Screens/LikeVideos";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    index: true,
-    element: <Home />,
-  },
-  {
-    path: "/Search/:id",
-    element: <Home />,
-  },
-  {
-    path: "/Playlist",
-    element: <Playlist />,
-  },
-  {
-    path: "/Likes",
-    element: <LikeVideos />,
-  },
-  {
-    path: "/Watch/:id",
-    element: <Watch />,
-  },
-  {
-    path: "/User/:id",
-    element: <User/>
-  }
-]);
-
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home/>} index/>
+      <Route path="/Search/:id" element={<Home/>}/>
+      <Route path="/Playlist" element={<Playlist/>}/>
+      <Route path="/Likes" element={<LikeVideos/>}/>
+      <Route path="/Watch/:id" element={<Watch/>}/>
+      <Route path="/User/:id" element={<User/>}/>
+    </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App;
