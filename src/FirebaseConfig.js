@@ -58,7 +58,7 @@ export const createVideo = (video, banner, desc, videoName) => {
   const date = new Date().getTime().toString()
   const dbref = ref(database);
   const uid = auth.currentUser.uid
-  const newVideo = push(ref(database, "/videos"), {
+  push(ref(database, "/videos"), {
     banner: banner,
     channelProfile: auth.currentUser.photoURL,
     videoName: videoName,

@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom/dist";
 import Home from "./Screens/Home";
 import Watch from "./Screens/Watch";
 import User from "./Screens/User";
+import Playlist from "./Screens/Playlist";
 
 const router = createBrowserRouter([
   {
@@ -15,12 +16,8 @@ const router = createBrowserRouter([
     element: <Home />,
   },
   {
-    path: "/History",
-    element: <Home />,
-  },
-  {
     path: "/Playlist",
-    element: <Home />,
+    element: <Playlist />,
   },
   {
     path: "/Likes",

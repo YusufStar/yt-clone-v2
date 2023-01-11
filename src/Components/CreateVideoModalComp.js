@@ -263,14 +263,16 @@ const CreateVideoModalComp = ({
                 </p>
               </div>
 
+                {videoComplateDetail.videoProg === 0 || !videoComplateDetail.videoProg && (
               <div className="px-5 py-2 bg-[#3ea6ff] rounded-md mt-3 z-[9999] cursor-pointer">
-                <button
+                  <button
                   disabled={videoComplateDetail.videoProg !== 100}
                   {...getInputProps()}
                   className="disabled:opacity-50 pointer-events-none"
                 ></button>
                 Dosya Seç
-              </div>
+                </div>
+                )}
             </div>
           </>
         )}

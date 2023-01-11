@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../Components/Navbar";
-import { Channels, videos } from "../Data";
 import Slider from "@mui/material/Slider";
 import screenfull from "screenfull";
 import { useSelector } from "react-redux";
@@ -38,12 +37,16 @@ const Watch = () => {
     get(child(dbref, `/`)).then((snap) => {
       if (snap.exists()) {
         setData(snap.val());
-        setvideo(snap.val().videos[id]);
+      }
+    });
+    get(child(dbref, `/videos/${id}`)).then((snap) => {
+      if (snap.exists()) {
+        setvideo(snap.val());
       }
     });
   }, [updateData]);
 
-  const playVideo = () => {
+  const playVideo = async () => {
     isPlaying ? videoRef.current.pause() : videoRef.current.play();
     setIsPlaying(!isPlaying);
   };
@@ -118,11 +121,12 @@ const Watch = () => {
 
   const TextFormatter = (tweet) => {
     if (tweet) {
-      return tweet
-        .replace(/@([\w]+)/g, "<span id='hat'>@$1</span>")
+      const res = tweet
+        .replace(/@([\wı]+)/g, "<button id='hat'>@$1</button>")
         .replace(/#([\wşçöğüıİ]+)/gi, "<span id='hash'>#$1</span>")
         .replace(/(https?:\/\/[\w\.\/]+)/, "<span>$1</span>")
         .replace(/\n/g, "<br />");
+      return res;
     } else {
       return tweet;
     }
@@ -133,12 +137,30 @@ const Watch = () => {
     return result;
   };
 
-  const HandleSub = () => {
+  const SaveVideo = async () => {
+    if (data?.Channels[user?.uid]?.savedVideo?.includes(video?.id)) {
+      console.log("remove");
+      const index = data?.Channels[user?.uid]?.savedVideo?.indexOf(video?.id);
+      await remove(ref(database, `/Channels/${user?.uid}/savedVideo/${index}`));
+      setUpdateData(!updateData);
+    } else {
+      console.log("add");
+      await set(
+        ref(database, `/Channels/${user?.uid}/savedVideo`, video?.id),
+        data?.Channels[user?.uid]?.savedVideo
+          ? [...data?.Channels[user?.uid]?.savedVideo, video?.id]
+          : [...[], video?.id]
+      );
+      setUpdateData(!updateData);
+    }
+  };
+
+  const HandleSub = async () => {
     if (!isSub(user?.uid)) {
       {
         /* Abone Ol */
       }
-      set(
+      await set(
         ref(database, `/Channels/${channelInfo?.uid}/subscribers`, user?.uid),
         channelInfo?.subscribers
           ? [...channelInfo?.subscribers, user?.uid]
@@ -149,48 +171,32 @@ const Watch = () => {
       {
         /* Abonelikten çık */
       }
-      remove(
+      await remove(
         ref(database, `/Channels/${channelInfo?.uid}/subscribers`, user?.uid)
       );
       setUpdateData(!updateData);
     }
   };
 
-  useEffect(() => {
-    const element = document.querySelectorAll("#hat");
-    element.forEach((el) => {
-      if (el) {
-        el.addEventListener("click", () => {
-          //navigate(`/User/${user}`)
-          const res = Object.keys(data?.Channels).find(
-            (key) => data?.Channels[key].name === el.innerHTML.replace("@", "")
-          );
-          const name = data?.Channels[res].name;
-          navigate(`/User/${name}`);
-        });
-      }
-    });
-  }, []);
-
-  const handleDislike = () => {
-    remove(ref(database, `/Channels/${id}/dislike`, user?.uid));
+  const handleDislike = async () => {
+    await remove(ref(database, `/Channels/${id}/dislike`, user?.uid));
     video?.like?.includes(user?.uid) &&
-      remove(ref(database, `/videos/${id}/like`, user?.uid));
+      (await remove(ref(database, `/videos/${id}/like`, user?.uid)));
     video?.dislike?.includes(user?.uid)
-      ? remove(ref(database, `/Channels/${id}/dislike`, user?.uid))
-      : set(
+      ? await remove(ref(database, `/Channels/${id}/dislike`, user?.uid))
+      : await set(
           ref(database, `/videos/${id}/dislike`, user?.uid),
           video?.dislike ? [...video?.dislike, user?.uid] : [...[], user?.uid]
         );
     setUpdateData(!updateData);
   };
 
-  const handleLike = () => {
+  const handleLike = async () => {
     video?.dislike?.includes(user?.uid) &&
-      remove(ref(database, `/videos/${id}/dislike`, user?.uid));
+      (await remove(ref(database, `/videos/${id}/dislike`, user?.uid)));
     video?.like?.includes(user?.uid)
-      ? remove(ref(database, `/Channels/${id}/like`, user?.uid))
-      : set(
+      ? await remove(ref(database, `/Channels/${id}/like`, user?.uid))
+      : await set(
           ref(database, `/videos/${id}/like`, user?.uid),
           video?.like ? [...video?.like, user?.uid] : [...[], user?.uid]
         );
@@ -200,7 +206,7 @@ const Watch = () => {
   return (
     <div className="w-full relative h-full min-h-screen overflow-y-auto bg-[#0f0f0f] flex">
       <Navbar />
-      <div className="flex w-full pl-24 pr-6 pt-20 max-w-[1400px] h-full flex-col min-h-full">
+      <div className="flex pl-24 pr-6 pt-20 w-auto h-full flex-col min-h-full">
         <div
           className={`${
             isFullScreen
@@ -219,6 +225,7 @@ const Watch = () => {
             onTimeUpdate={() => {
               setCurrentTime(videoRef.current.currentTime);
               onTimeUpdate();
+              onProgress();
             }}
             onEnded={() => setIsPlaying(false)}
             onWaiting={() => setIsLoading(true)}
@@ -270,19 +277,19 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
           {/* Overlay */}
           <div className="absolute left-0 right-0 bottom-0 w-full h-auto flex flex-col justify-end items-center">
             {/* Progress Bar */}
-            <div className="h-[3px] border-transparent bg-white/25 w-[98%] mx-auto relative">
+            <div className="h-[3px] border-transparent bg-[#333333]/50 w-[98%] relative">
               <div
                 className={`w-0 h-full absolute bg-[#FF0000] z-20`}
                 ref={progressRef}
               ></div>
               <div
-                className={`w-0 h-full absolute bg-white/50 z-10`}
+                className={`w-0 h-full absolute bg-[#fff]/50 z-10`}
                 ref={bufferRef}
               ></div>
             </div>
 
             {/* Video Controls */}
-            <div className="w-[98%] mx-auto flex items-center">
+            <div className="w-[98%] flex items-center">
               <div className="gradient-custom" />
               <button onClick={playVideo} className="w-12 h-12 px-[2px]">
                 {!isPlaying ? (
@@ -489,10 +496,18 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
           {/* Channel Info */}
           <div className="w-[1280px] h-auto flex items-center">
             <img
+              onClick={() => {
+                navigate(`/User/${video?.channelName}`);
+              }}
               src={video?.channelProfile}
-              className="w-[40px] h-[40px] rounded-full"
+              className="w-[40px] h-[40px] cursor-pointer rounded-full"
             />
-            <h1 className="flex flex-col justify-start ml-3 items-start h-auto w-auto">
+            <h1
+              onClick={() => {
+                navigate(`/User/${video?.channelName}`);
+              }}
+              className="flex flex-col cursor-pointer justify-start ml-3 items-start h-auto w-auto"
+            >
               <span className="text-white font-semibold">
                 {video?.channelName}
               </span>
@@ -655,6 +670,33 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
               </svg>
               İndir
             </a>
+            <p
+              onClick={() => SaveVideo()}
+              className={`w-[100px] h-[40px] ml-3 bg-[#272727] flex items-center justify-center rounded-full text-[14px] cursor-pointer hover:bg-[#3f3f3f] font-semibold ${
+                data?.Channels[user?.uid]?.savedVideo?.includes(video?.id) &&
+                "opacity-50"
+              }`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                preserveAspectRatio="xMidYMid meet"
+                focusable="false"
+                style={{
+                  pointerEvents: "none",
+                  width: "24px",
+                  height: "24px",
+                  marginRight: 5,
+                }}
+              >
+                <g>
+                  <path
+                    fill="white"
+                    d="M22,13h-4v4h-2v-4h-4v-2h4V7h2v4h4V13z M14,7H2v1h12V7z M2,12h8v-1H2V12z M2,16h8v-1H2V16z"
+                  ></path>
+                </g>
+              </svg>
+              Kaydet
+            </p>
           </div>
 
           <div className="w-[1280px] h-auto px-3 py-2 rounded-xl bg-[#272727] flex flex-col mt-5">
@@ -677,8 +719,11 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
             <p>{video?.comments ? video?.comments?.length : 0} Yorum</p>
             <div className="flex w-full h-auto gap-3 mt-3">
               <img
+                onClick={() => {
+                  navigate(`/User/${video?.channelName}`);
+                }}
                 src={user?.photoURL}
-                className="w-[40px] h-[40px] rounded-full"
+                className="w-[40px] h-[40px] cursor-pointer rounded-full"
               />
               <input
                 value={comment}
@@ -731,10 +776,18 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
                     className="w-full h-auto flex gap-3 items-center"
                   >
                     <img
+                      onClick={() => {
+                        navigate(`/User/${comment?.name?.replace(" ", "")}`);
+                      }}
                       src={comment?.photoURL}
-                      className="w-[40px] h-[40px] rounded-full"
+                      className="w-[40px] h-[40px] rounded-full cursor-pointer"
                     />
-                    <h1 className="w-full flex flex-col items-start justify-start h-auto">
+                    <h1
+                      className="w-full flex flex-col items-start cursor-pointer justify-start h-auto"
+                      onClick={() => {
+                        navigate(`/User/${comment?.name?.replace(" ", "")}`);
+                      }}
+                    >
                       <span className="text-[12px] font-semibold">
                         {comment?.name} -{" "}
                         <span className="font-normal text-xs text-[#aaaa]">
@@ -752,34 +805,39 @@ C22.32,8.481,24.301,9.057,26.013,10.047z"
           </div>
         </div>
       </div>
-      <div className="w-[170px] h-auto flex flex-col min-h-screen gap-4 pt-20">
-        {Object.keys({ ...data?.videos }).map((video) => {
+      <div className="w-auto h-auto flex flex-col max-w-full overflow-y-auto gap-4 pt-20">
+        {Object.keys({ ...data?.videos }).map((video, key) => {
+          console.log(data?.videos[video])
           return (
             <div
-              className="flex gap-2 w-full h-[95px] cursor-pointer min-w-[300px]"
-              onClick={() => navigate(`/Watch/${video}`)}
+              key={key}
+              className="flex gap-2 h-[125px] transition-all duration-150 px-2 py-3 rounded-xl hover:bg-[#272727] cursor-pointer w-auto"
+              onClick={() => {
+                navigate(`/Watch/${video}`);
+                setUpdateData(!updateData);
+              }}
             >
-              <div className="h-full min-w-[170px] rounded-xl relative">
+              <div className="h-full w-auto rounded-xl relative">
                 <img
                   src={data?.videos[video].banner}
-                  className="h-full rounded-xl w-[170px] relative"
+                  className="h-full rounded-xl min-w-[170px] relative"
                 />
-                <p className="absolute right-1 bottom-1 text-white text-xs py-[3px] px-[4px] h-[24px] rounded-md bg-black">
+                <p className="absolute right-1 bottom-1 text-xs py-[3px] px-[4px] h-[24px] rounded-md bg-black">
                   50:17
                 </p>
               </div>
 
-              <div className="w-[300px] h-full max-h-[95px] flex flex-col">
-                <h1 className="flex flex-wrap h-auto mb-3 w-full text-sm font-semibold text-white">
+              <div className="w-auto h-full max-h-[95px] flex flex-col">
+                <h1 className="flex flex-wrap h-auto mb-3 w-auto text-sm font-semibold text-white">
                   {data?.videos[video]?.videoName?.slice(0, 25)}
                 </h1>
 
                 <h1 className="flex flex-wrap w-[50px] text-xs font-medium text-[#aaa]">
-                  {data?.videos[video].channelName}
+                  {data?.videos[video]?.channelName}
                 </h1>
 
-                <p className="text-xs w-full pt-1 text-[#aaa] font-medium ">
-                  {data?.videos[video].view} •{" "}
+                <p className="text-xs w-auto pt-1 text-[#aaa] font-medium ">
+                  {data?.videos[video]?.view} •{" "}
                   {new Date(
                     Number(data?.videos[video].date)
                   ).toLocaleDateString()}

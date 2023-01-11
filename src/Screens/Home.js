@@ -5,6 +5,7 @@ import AllVideos from "../Components/AllVideos";
 import { useParams } from "react-router-dom";
 import { child, get, ref } from "firebase/database";
 import { database } from "../FirebaseConfig";
+import axios from "axios";
 
 
 const Home = () => {  
@@ -21,8 +22,6 @@ const Home = () => {
       }
     });
   }, []);
-
-  const array = new Array(15)
 
   return (
     <div className="h-auto min-h-screen bg-[#0f0f0f] flex flex-col">
