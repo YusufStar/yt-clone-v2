@@ -6,9 +6,9 @@ import Navbar from "../Components/Navbar";
 import SideBar from "../Components/SideBar";
 import { database } from "../FirebaseConfig";
 
-const Playlist = () => {
+const LikeVideos = () => {
   const { user } = useSelector((state) => state.Auth);
-  const [savedVideos, setSavedVideos] = useState(null)
+  const [likedVideos, setlikedVideos] = useState(null)
   const [keys, setKeys] = useState([])
   const navigate = useNavigate()
   
@@ -19,7 +19,7 @@ const Playlist = () => {
               const saveVid = []
               const videos = snap.val()?.videos
               const filteredDat = Object.keys(videos)?.filter((video) => {
-            return snap.val()?.Channels[user?.uid]?.savedVideo?.includes(snap.val().videos[video]?.id)
+            return videos[video]?.like?.includes(user?.uid)
         })
         filteredDat.forEach((key) => {
           setKeys([...keys, key])
@@ -27,7 +27,7 @@ const Playlist = () => {
                 ...snap.val().videos[key]
             })
         })
-        setSavedVideos(saveVid)
+        setlikedVideos(saveVid)
       }
     });
   }, []);
@@ -38,7 +38,7 @@ const Playlist = () => {
       <div className="flex w-full pr-6 pt-16 h-full flex-col min-h-full">
         <SideBar />
         <div className="w-full h-full flex flex-col gap-3 pl-[240px]">
-            {savedVideos && savedVideos.map((video, key) => {
+            {likedVideos && likedVideos.map((video, key) => {
                 return (
                 <div key={key} onClick={() => navigate(`/Watch/${keys[key]}`)} className="py-4 cursor-pointer w-full rounded-xl px-3 hover:bg-[#272727] flex items-center">
                     <img src={video?.banner} className="w-[160px] h-[90px] rounded-xl" />
@@ -56,4 +56,4 @@ const Playlist = () => {
   );
 };
 
-export default Playlist;
+export default LikeVideos;

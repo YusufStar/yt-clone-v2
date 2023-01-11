@@ -4,6 +4,7 @@ import Home from "./Screens/Home";
 import Watch from "./Screens/Watch";
 import User from "./Screens/User";
 import Playlist from "./Screens/Playlist";
+import LikeVideos from "./Screens/LikeVideos";
 
 const router = createBrowserRouter([
   {
@@ -21,7 +22,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/Likes",
-    element: <Home />,
+    element: <LikeVideos />,
   },
   {
     path: "/Watch/:id",

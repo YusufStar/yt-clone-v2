@@ -179,11 +179,12 @@ const Watch = () => {
   };
 
   const handleDislike = async () => {
-    await remove(ref(database, `/Channels/${id}/dislike`, user?.uid));
+    const likeindex = video?.like?.indexOf(user?.uid)
     video?.like?.includes(user?.uid) &&
-      (await remove(ref(database, `/videos/${id}/like`, user?.uid)));
-    video?.dislike?.includes(user?.uid)
-      ? await remove(ref(database, `/Channels/${id}/dislike`, user?.uid))
+      (await remove(ref(database, `/videos/${id}/like/${likeindex}`)));
+      const index = video?.dislike?.indexOf(user?.uid)
+      video?.dislike?.includes(user?.uid)
+      ? await remove(ref(database, `/Channels/${id}/dislike/${index}`))
       : await set(
           ref(database, `/videos/${id}/dislike`, user?.uid),
           video?.dislike ? [...video?.dislike, user?.uid] : [...[], user?.uid]
@@ -192,12 +193,15 @@ const Watch = () => {
   };
 
   const handleLike = async () => {
+    const likeindex = video?.like?.indexOf(user?.uid)
+    const dislikeindex = video?.dislike?.indexOf(user?.uid)
+
     video?.dislike?.includes(user?.uid) &&
-      (await remove(ref(database, `/videos/${id}/dislike`, user?.uid)));
+      (await remove(ref(database, `/videos/${id}/dislike/${dislikeindex}`)));
     video?.like?.includes(user?.uid)
-      ? await remove(ref(database, `/Channels/${id}/like`, user?.uid))
+      ? await remove(ref(database, `/Channels/${id}/like/${likeindex}`))
       : await set(
-          ref(database, `/videos/${id}/like`, user?.uid),
+          ref(database, `/videos/${id}/like`),
           video?.like ? [...video?.like, user?.uid] : [...[], user?.uid]
         );
     setUpdateData(!updateData);
